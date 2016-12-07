@@ -1,0 +1,36 @@
+sed -n '/^interface/,/^!/{
+/^(interface| ip helper-address)/p
+}' Site_01-2016.04.12-14.52.53.txt
+
+sed -n '/^interface/,/^!/{ /^interface/p; /^ ip helper-address/p;}' Site_01-2016.04.12-14.52.53.txt | sed -n '$!N;/ip helper-address/P;D'
+
+for file in ./*; do sed -n '/^interface/,/^!/{ /^interface/p; /^ ip helper-address/p;}' "$file" | sed -n '$!N;/ip helper-address/P;D' > "$file.out"; done
+
+sed -n '/^interface/,/^!/{ /^interface/p; /^ ip helper-address/p;}' Site_01-2016.04.12-14.52.53.txt | sed -n '$!N;/ip helper-address/P;D' | sed 's/^interface/!\'$'\ninterface/'
+
+for file in ./*.txt
+do
+	echo '!'$'\nconf t' > "$file.out" ;
+	sed -n '/^interface/,/^!/{ /^interface/p; /^ +ip helper-address|^ +ip dhcp relay address/p;}' "$file" | sed -n '$!N;/ip helper-address/P;D' | sed 's/^interface/!\'$'\ninterface/' >> "$file.out" ; echo "!"$'\nexit'$'\n!'$'\nexit'$'\n!' >> "$file.out" 
+done
+
+for file in ./*.txt
+do
+	echo '!'$'\nconf t' > "$file.out"
+	sed -n '/^interface/,/^!/{ /^interface/p; /^ ip helper-address/p;}' "$file" | sed -n '$!N;/ip helper-address/P;D' | sed 's/^interface/!\'$'\ninterface/' >> "$file.out" ; echo "!"$'\nexit'$'\n!'$'\nexit'$'\n!' >> "$file.out"
+done
+
+for file in ./*.txt;
+do
+	echo '!'$'\nconf t' > "$file.out";
+	sed -En '/^interface/,/^!/{ /^interface/p; /(^ +ip helper-address|^ +ip dhcp relay address)/p;}' "$file" | \
+	sed -En '$!N;/ip helper-address|ip dhcp relay address/P;D' | \
+	sed 's/^interface/!\'$'\ninterface/' >> "$file.out" ;
+	echo "!"$'\nexit'$'\n!'$'\nexit'$'\n!' >> "$file.out" ;
+done
+
+
+
+sed -n '/^interface/,/^!/{ /^interface/p; /^ ip helper-address/p;}'  Site_01-2016.02.12-13.55.13.txt | \
+	sed -n '$!N;/ip helper-address|ip dhcp relay address/P;D' | \
+	sed 's/^interface/!\'$'\ninterface/'
