@@ -18,8 +18,8 @@ Param(
     }
 
     $items = Invoke-Expression "Get-ChildItem $Args";
-    $lnStr = if ($items){ 
-        $items | select-object Name | sort-object { "$_".length } -descending | select-object -first 1
+    if ($items){ 
+        $lnStr = $items | select-object Name | sort-object { "$_".length } -descending | select-object -first 1
         $len = $lnStr.name.length
         $cols = If ($len) {($width+1)/($len+2)} Else {1};
         $cols = [math]::floor($cols);
@@ -49,7 +49,7 @@ Param(
     }
 
     foreach ($Extension in $dll_pdb_list) {
-        $color_table[$Extension] = "LightGreen"
+        $color_table[$Extension] = "Magenta"
     }
 
     foreach ($Extension in $configs_list) {
@@ -64,7 +64,7 @@ Param(
 
     $items |
     %{
-        if ($_.GetType().Name -eq 'DirectoryInfo') {
+        if ($_.Attributes.HasFlag( [System.IO.FileAttributes]::Directory)) {
             $c = "Green"
             $length = ""
         } else {
@@ -79,8 +79,8 @@ Param(
 
         # get the directory name
         if ($_.GetType().Name -eq "FileInfo") {
-            $DirectoryName = $_.DirectoryName
-        } elseif ($_.GetType().Name -eq "DirectoryInfo") {
+            $DirectoryName = $_.DirectoryNameInfo
+        } elseif ($_.Attributes.HasFlag( [System.IO.FileAttributes]::Directory)) {
             $DirectoryName = $_.Parent.FullName
         }
         
