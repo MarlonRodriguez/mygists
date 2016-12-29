@@ -1,7 +1,9 @@
-﻿Set-StrictMode -Version Latest
+Set-StrictMode -Version Latest
 $LASTEXITCODE = 0
 
-Install-Module -Name PowerShellCookBook -Scope CurrentUser -Force
+if (Get-Command *Install-Module){
+    Install-Module -Name PowerShellCookBook -Scope CurrentUser -Force
+}
 
 function Test-Administrator {
     $user = [Security.Principal.WindowsIdentity]::GetCurrent();
@@ -71,7 +73,7 @@ New-PSDrive -Name SysMods -PSProvider filesystem -Root (($env:PSModulePath).Spli
 
 #add my ISE functions module
 If (-not (Get-Module PoShScripting)){
-	Import-module "$env:USERPROFILE\Documents\GitHub\PoSh\MyModules\PoShScripting.psm1"
+	Import-module MyMods:\MyModules\PoShScripting.psm1
 }
 
 #add replace 4 spaces with tabs
@@ -82,7 +84,7 @@ if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.Displa
 
 # Add a block comment and uncomment menu items.
 If (-not (Get-Module ISEAddOns)){
-	Import-module "$env:USERPROFILE\Documents\GitHub\PoSh\MyModules\ISEAddOns.psm1"
+	Import-module MyMods:\MyModules\ISEAddOns.psm1
 }
 
 if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.DisplayName -eq "Block Comment" }))
@@ -94,8 +96,39 @@ if (!($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus | Where-Object { $_.Displa
 	$psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("Block Uncomment",{Remove-ISEComment},"Ctrl+Shift+K")
 }
 
-. MyMods:Get-ChildItem-Color.ps1
+. MyMods:\MyModules\Get-ChildItem-Color.ps1
 Set-Alias ll Get-ChildItem-Color -Option AllScope -Force
 Set-Alias ls Get-ChildItem-Format-Wide -Option AllScope -Force
 Set-Alias la Get-ChildItem-All -Option AllScope -Force
 Set-Alias dir Get-ChildItem-Color -Option AllScope -Force
+
+$plink = "C:\Users\me14114\AppData\Local\Microsoft\AppV\Client\Integration\F8162E1C-DD55-4CF5-B570-73758CD0B08E\Root\plink.exe"
+
+function Fake-SSH{
+PARAM()
+    $New_Args = "-ssh -2"
+    $args | %{ $New_Args = $New_Args + " " + $_}
+
+    Write-Output "$plink $New_Args"
+    Invoke-Expression "$plink $New_Args"
+
+}
+
+$MaximumHistoryCount = 1KB
+
+
+if (!(Test-Path ~\PowerShell -PathType Container))
+{
+    New-Item ~\PowerShell -ItemType Directory
+}
+
+function bye 
+{
+    Get-History -Count 1KB |Export-CSV ~\PowerShell\history.csv
+    exit
+}
+
+if (Test-path ~\PowerShell\History.csv)
+{
+    Import-CSV ~\PowerShell\History.csv |Add-History
+}

@@ -1,7 +1,9 @@
-﻿Set-StrictMode -Version Latest
+Set-StrictMode -Version Latest
 $LASTEXITCODE = 0
 
-Install-Module -Name PowerShellCookBook -Scope CurrentUser
+if (Get-Command *Install-Module){
+    Install-Module -Name PowerShellCookBook -Scope CurrentUser -Force
+}
 
 function Test-Administrator {
     $user = [Security.Principal.WindowsIdentity]::GetCurrent();
@@ -28,7 +30,7 @@ Function Prompt {
 
     # Reset color, which can be messed up by other modules
     $Host.UI.RawUI.ForegroundColor = "White"
-    $Host.UI.RawUI.BackgroundColor = "DarkMagenta"
+    #$Host.UI.RawUI.BackgroundColor = "DarkMagenta"
 
 
     if ($env:RunningAsAdmin) {  # Use different username if elevated
@@ -73,8 +75,51 @@ If (Test-Path Env:vSpherePath){ $Env:vSphereCLI = Join-Path $Env:vSpherePath "Sc
 New-PSDrive -Name MyMods -PSProvider filesystem -Root (($env:PSModulePath).Split(";")[0])
 New-PSDrive -Name SysMods -PSProvider filesystem -Root (($env:PSModulePath).Split(";")[1])
 
-. MyMods:Get-ChildItem-Color.ps1
+. MyMods:\MyModules\Get-ChildItem-Color.ps1
 Set-Alias ll Get-ChildItem-Color -Option AllScope -Force
 Set-Alias ls Get-ChildItem-Format-Wide -Option AllScope -Force
 Set-Alias la Get-ChildItem-All -Option AllScope -Force
 Set-Alias dir Get-ChildItem-Color -Option AllScope -Force
+
+$plink = "C:\Users\me14114\AppData\Local\Microsoft\AppV\Client\Integration\F8162E1C-DD55-4CF5-B570-73758CD0B08E\Root\plink.exe"
+
+function Fake-SSH{
+PARAM()
+    $New_Args = "-ssh -2"
+    $args | %{ $New_Args = $New_Args + " " + $_}
+
+    Invoke-Expression "$plink $New_Args"
+
+}
+if (Test-Path $plink){
+    Set-Alias -Name ssh -Value Fake-SSH -Option AllScope -Description "Uses plink to fake the functionality of ssh in powershell." -Force
+} else {
+    Write-Error "Failed to find plink..."
+}
+
+$MaximumHistoryCount = 1KB
+
+
+if (!(Test-Path ~\PowerShell -PathType Container))
+{
+    New-Item ~\PowerShell -ItemType Directory
+}
+
+function bye 
+{
+    Get-History -Count 1KB |Export-CSV ~\PowerShell\history.csv
+    exit
+}
+
+if (Test-path ~\PowerShell\History.csv)
+{
+    Import-CSV ~\PowerShell\History.csv |Add-History
+}
+
+Function Get-CheckSum
+{
+PARAM(
+    
+)
+    $(CertUtil -hashfile C:\TEMP\MyDataFile.img MD5)[1] -replace " ",""
+}
