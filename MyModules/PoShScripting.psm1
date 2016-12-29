@@ -145,7 +145,7 @@ PARAM(
     }
     PROCESS {
         # This part could run many times depending on what the pipeline sent to it.  If not supporting pipeline input you dont need it.
-        If (`$pscmdlet.ShouldProcess(`$$({ If ($Params -is [array]){$Params[0]} else {$Params}}))){
+        If (`$pscmdlet.ShouldProcess(`$$({If ($Params -is [array]){$Params[0]} else {$Params}}))){
             #If the "-whatif" switch is not passed then do this...
         }
     }
